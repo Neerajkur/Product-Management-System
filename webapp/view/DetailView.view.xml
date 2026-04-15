@@ -1,0 +1,126 @@
+<mvc:View
+    controllerName="empms.controller.DetailView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:form="sap.ui.layout.form">
+
+    <Page
+        title="Product Detail"
+        showNavButton="true"
+        navButtonPress=".onBack">
+
+        <headerContent>
+            <Button
+                text="Edit"
+                type="Emphasized"
+                press=".onEdit"
+                visible="{= !${ui>/editMode} }"/>
+            <!-- <Button
+                text="Save"
+                type="Accept"
+                press=".onSave"
+                visible="{= ${/editMode} }"/>
+            <Button
+                text="Cancel"
+                type="Reject"
+                press=".onCancel"
+                visible="{= ${/editMode} }"/> -->
+        </headerContent>
+
+        <content>
+
+            <!-- Avatar + Name + Role -->
+            <VBox
+                alignItems="Center"
+                class="sapUiMediumMarginTop sapUiMediumMarginBottom">
+                <Avatar
+                    initials="{initials}"
+                    displaySize="L"
+                    backgroundColor="Accent1"/>
+                <Title
+                    text="{ProductName}"
+                    level="H2"
+                    class="sapUiSmallMarginTop"/>
+                <Text
+                    text="{UnitPrice}"
+                    class="sapUiTinyMarginTop"/>
+            </VBox>
+
+            <!-- Employee Details Form -->
+            <form:SimpleForm
+                editable="false"
+                layout="ResponsiveGridLayout"
+                class="sapUiSmallMarginTop sapUiMediumMarginBegin sapUiMediumMarginEnd">
+
+                <form:content>
+
+                    <Label text="Product ID"/>
+                    <VBox>
+                        <Text text="{local>ProductID}" visible="{= !${ui>/editMode} }"/>
+                        <Input id="idProductID" value="{local>ProductID}" visible="{= ${ui>/editMode} }" placeholder="Enter ID"/>
+                    </VBox>
+
+                    <Label text="Product Name"/>
+                    <VBox>
+                        <Text text="{local>ProductName}" visible="{= !${ui>/editMode} }"/>
+                        <Input id="idProductName" value="{local>ProductName}" visible="{= ${ui>/editMode} }" placeholder="Enter Name"/>
+                    </VBox>
+
+                    <Label text="Unit Price"/>
+                    <VBox>
+                        <Text text="{local>UnitPrice}" visible="{= !${ui>/editMode} }"/>
+                        <Input id="idUnitPrice" value="{local>UnitPrice}" visible="{= ${ui>/editMode} }" placeholder="Enter Department"/>
+                    </VBox>
+
+                    <Label text="Units In Stock"/>
+                    <VBox>
+                        <Text text="{local>UnitsInStock}" visible="{= !${ui>/editMode} }"/>
+                        <Input id="idUnitsInStock" value="{local>UnitsInStock}" visible="{= ${ui>/editMode} }" placeholder="Enter Role"/>
+                    </VBox>
+
+                    <Label text="Units On Order"/>
+                    <VBox>
+                        <Text text="{local>UnitsOnOrder}" visible="{= !${ui>/editMode} }"/>
+                        <Input id="idUnitsOnOrder" value="{local>UnitsOnOrder}" visible="{= ${ui>/editMode} }" placeholder="Enter Salary"/>
+                    </VBox>
+
+                    <Label text="Discontinued"/>
+                    <VBox>
+                        <Text text="{local>Discontinued}" visible="{= !${ui>/editMode} }"/>
+                        <Input id="idDiscontinued" value="{local>Discontinued}" visible="{= ${ui>/editMode} }" placeholder="Enter Status"/>
+                    </VBox>
+
+                </form:content>
+            </form:SimpleForm>
+
+            <!-- Action Buttons -->
+            <HBox
+                justifyContent="Center"
+                class="sapUiMediumMarginTop sapUiMediumMarginBottom">
+                <Button
+                    text="Edit"
+                    type="Emphasized"
+                    press=".onEdit"
+                    class="sapUiSmallMarginEnd"
+                    visible="{= !${ui>/editMode} }"/>
+                <Button
+                    text="Delete"
+                    type="Reject"
+                    press=".onDelete"
+                    visible="{= !${ui>/editMode} }"/>
+                <Button
+                    text="Save"
+                    type="Accept"
+                    press=".onSave"
+                    class="sapUiSmallMarginEnd"
+                    visible="{= ${ui>/editMode} }"/>
+                <Button
+                    text="Cancel"
+                    type="Reject"
+                    press=".onCancel"
+                    visible="{= ${ui>/editMode} }"/>
+            </HBox>
+
+        </content>
+    </Page>
+</mvc:View>

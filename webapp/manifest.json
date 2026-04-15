@@ -1,0 +1,123 @@
+{
+    "_version": "1.83.0",
+    "sap.app": {
+        "id": "empms",
+        "type": "application",
+        "i18n": "i18n/i18n.properties",
+        "applicationVersion": {
+            "version": "0.0.1"
+        },
+        "title": "{{appTitle}}",
+        "description": "{{appDescription}}",
+        "resources": "resources.json",
+        "sourceTemplate": {
+            "id": "@sap/generator-fiori:basic",
+            "version": "1.22.0",
+            "toolsId": "5ff9171e-c360-4e6f-ad26-a3ad0f21d9ba"
+        },
+        "dataSources": {
+            "northwind": {
+                "uri": "/V2/Northwind/Northwind.svc/",
+                "type": "OData",
+                "settings": {
+                    "odataVersion": "2.0"
+                }
+            }
+        }
+    },
+    "sap.ui": {
+        "technology": "UI5",
+        "icons": {
+            "icon": "",
+            "favIcon": "",
+            "phone": "",
+            "phone@2": "",
+            "tablet": "",
+            "tablet@2": ""
+        },
+        "deviceTypes": {
+            "desktop": true,
+            "tablet": true,
+            "phone": true
+        }
+    },
+    "sap.ui5": {
+        "flexEnabled": false,
+        "dependencies": {
+            "minUI5Version": "1.146.0",
+            "libs": {
+                "sap.m": {},
+                "sap.ui.core": {}
+            }
+        },
+        "contentDensities": {
+            "compact": true,
+            "cozy": true
+        },
+        "models": {
+            "": {
+                "dataSource": "northwind",
+                "type": "sap.ui.model.odata.v2.ODataModel",
+                "settings": {
+                    "useBatch": false
+                }
+            },
+            "i18n": {
+                "type": "sap.ui.model.resource.ResourceModel",
+                "settings": {
+                    "bundleName": "empms.i18n.i18n"
+                }
+            }
+        },
+        "resources": {
+            "css": [
+                {
+                    "uri": "css/style.css"
+                }
+            ]
+        },
+        "routing": {
+            "config": {
+                "routerClass": "sap.m.routing.Router",
+                "controlAggregation": "pages",
+                "controlId": "app",
+                "transition": "slide",
+                "type": "View",
+                "viewType": "XML",
+                "path": "empms.view",
+                "async": true,
+                "viewPath": "empms.view"
+            },
+            "routes": [
+                {
+                    "name": "RoutemainView",
+                    "pattern": ":?query:",
+                    "target": [
+                        "TargetmainView"
+                    ]
+                },
+                {
+                    "name": "detail",
+                    "pattern": "detail/{id}",
+                    "target": "detail"
+                }
+            ],
+            "targets": {
+                "TargetmainView": {
+                    "id": "mainView",
+                    "name": "mainView"
+                },
+                "detail": {
+                    "id": "detailView",
+                    "name": "DetailView"
+                }
+            }
+        },
+        "rootView": {
+            "viewName": "empms.view.App",
+            "type": "XML",
+            "id": "App",
+            "async": true
+        }
+    }
+}

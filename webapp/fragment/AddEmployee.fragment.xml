@@ -1,0 +1,51 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        title="Add New Product"
+        contentWidth="400px">
+
+        <content>
+            <form:SimpleForm
+                editable="true"
+                layout="ResponsiveGridLayout">
+                <form:content>
+
+                    <Label text="ID"/>
+                    <Input id="idNewID" placeholder="Enter Product ID"/>
+
+                    <Label text="Name"/>
+                    <Input id="idNewName" placeholder="Enter Product Name"/>
+
+                    <Label text="Unit Price"/>
+                    <Input id="idNewUnitPrice" placeholder="Enter Unit Price"/>
+
+                    <Label text="Unit In Stocks"/>
+                    <Input id="idNewUnitStock" placeholder="Enter Unit In Stocks"/>
+
+                    <Label text="Discountined"/>
+                    <Input id="idNewStatus" placeholder="Enter Status"/>
+
+                </form:content>
+            </form:SimpleForm>
+        </content>
+
+        <beginButton>
+            <Button
+                text="Save"
+                type="Accept"
+                press=".onSaveProduct"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                text="Cancel"
+                type="Reject"
+                press=".onCancelProduct"/>
+        </endButton>
+
+    </Dialog>
+
+</core:FragmentDefinition>

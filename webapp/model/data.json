@@ -1,0 +1,83 @@
+{
+    "editMode": false,
+    "kpi": {
+        "totalEmployees": 8,
+        "activeEmployees": 5,
+        "newJoiners": 2,
+        "departments": 6
+    },
+    "employees": [
+        {
+            "id": "E001",
+            "name": "Ravi Kumar",
+            "department": "Engineering",
+            "role": "Senior Developer",
+            "salary": 45000,
+            "status": "Active",
+            "initials": "RK"
+        },
+        {
+            "id": "E002",
+            "name": "Priya Sharma",
+            "department": "HR",
+            "role": "HR Manager",
+            "salary": 38000,
+            "status": "Active",
+            "initials": "PS"
+        },
+        {
+            "id": "E003",
+            "name": "Amit Joshi",
+            "department": "Finance",
+            "role": "Finance Analyst",
+            "salary": 42000,
+            "status": "Active",
+            "initials": "AJ"
+        },
+        {
+            "id": "E004",
+            "name": "Sneha Mehta",
+            "department": "Design",
+            "role": "UI Designer",
+            "salary": 40000,
+            "status": "New",
+            "initials": "SM"
+        },
+        {
+            "id": "E005",
+            "name": "Rohit Verma",
+            "department": "Sales",
+            "role": "Sales Executive",
+            "salary": 35000,
+            "status": "Active",
+            "initials": "RV"
+        },
+        {
+            "id": "E006",
+            "name": "Anjali Singh",
+            "department": "Engineering",
+            "role": "Junior Developer",
+            "salary": 32000,
+            "status": "New",
+            "initials": "AS"
+        },
+        {
+            "id": "E007",
+            "name": "Vikram Patel",
+            "department": "Marketing",
+            "role": "Marketing Lead",
+            "salary": 41000,
+            "status": "Active",
+            "initials": "VP"
+        },
+        {
+            "id": "E008",
+            "name": "Neha Gupta",
+            "department": "Finance",
+            "role": "Accountant",
+            "salary": 36000,
+            "status": "Inactive",
+            "initials": "NG"
+        }
+    ]
+}

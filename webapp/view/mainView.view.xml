@@ -1,0 +1,225 @@
+<mvc:View
+    controllerName="empms.controller.mainView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Page
+        id="page"
+        title="{i18n>title}"
+    >
+        <headerContent>
+            <Button
+                text="Add Employee"
+                type="Emphasized"
+                press=".onAddEmployee"
+            />
+        </headerContent>
+
+        <content>
+            <!-- Welcome Text -->
+            <VBox class="sapUiSmallMarginBegin sapUiSmallMarginTop">
+                <Text text="Welcome to Product Management System" />
+            </VBox>
+
+            <!-- KPI Tiles -->
+            <HBox
+                justifyContent="Start"
+                class="sapUiMediumMarginTop sapUiMediumMarginBegin sapUiMediumMarginEnd"
+                width="100%"
+                renderType="Bare"
+            >
+                <GenericTile
+                    class="sapUiSmallMarginEnd"
+                    header="Total Employees"
+                    subheader="All registered employees"
+                    frameType="OneByOne"
+                >
+                    <TileContent footer="Organization wide">
+                        <NumericContent
+                            value="{/kpi/totalEmployees}"
+                            scale=""
+                        />
+                    </TileContent>
+                </GenericTile>
+
+                <GenericTile
+                    class="sapUiSmallMarginEnd"
+                    header="Active Employees"
+                    subheader="Currently working"
+                    frameType="OneByOne"
+                >
+                    <TileContent footer="As of today">
+                        <NumericContent
+                            value="{/kpi/activeEmployees}"
+                            scale=""
+                        />
+                    </TileContent>
+                </GenericTile>
+
+                <GenericTile
+                    class="sapUiSmallMarginEnd"
+                    header="New Joiners"
+                    subheader="Joined this month"
+                    frameType="OneByOne"
+                >
+                    <TileContent footer="Current month">
+                        <NumericContent
+                            value="{/kpi/newJoiners}"
+                            scale=""
+                        />
+                    </TileContent>
+                </GenericTile>
+
+                <GenericTile
+                    class="sapUiSmallMarginEnd"
+                    header="Departments"
+                    subheader="Active departments"
+                    frameType="OneByOne"
+                >
+                    <TileContent footer="Across organization">
+                        <NumericContent
+                            value="{/kpi/departments}"
+                            scale=""
+                        />
+                    </TileContent>
+                </GenericTile>
+            </HBox>
+
+            <!-- Search + Filter + Sort Toolbar -->
+            <Toolbar class="sapUiMediumMarginTop">
+                <SearchField
+                    id="idSearchField"
+                    placeholder="Search by name..."
+                    width="300px"
+                    liveChange=".onSearch"
+                />
+
+                <ToolbarSpacer />
+
+                <Select
+                    id="idDepartmentFilter"
+                    change=".onFilter"
+                >
+                    <items>
+                        <core:Item
+                            key="ALL"
+                            text="All Departments"
+                        />
+                        <core:Item
+                            key="Engineering"
+                            text="Engineering"
+                        />
+                        <core:Item
+                            key="HR"
+                            text="HR"
+                        />
+                        <core:Item
+                            key="Finance"
+                            text="Finance"
+                        />
+                        <core:Item
+                            key="Design"
+                            text="Design"
+                        />
+                        <core:Item
+                            key="Sales"
+                            text="Sales"
+                        />
+                        <core:Item
+                            key="Marketing"
+                            text="Marketing"
+                        />
+                    </items>
+                </Select>
+
+                <Select
+                    id="idSort"
+                    change=".onSort"
+                >
+                    <items>
+                        <core:Item
+                            key="none"
+                            text="Sort By"
+                        />
+                        <core:Item
+                            key="nameAsc"
+                            text="Name A→Z"
+                        />
+                        <core:Item
+                            key="nameDesc"
+                            text="Name Z→A"
+                        />
+                        <core:Item
+                            key="salaryAsc"
+                            text="Salary Low→High"
+                        />
+                        <core:Item
+                            key="salaryDesc"
+                            text="Salary High→Low"
+                        />
+                    </items>
+                </Select>
+            </Toolbar>
+
+            <Table
+                id="ProductTable"
+                items="{
+                path : 'local>/Products',
+                length : 10
+                }"
+                mode="MultiSelect"
+                growing="true"
+                growingThreshold="10"
+                growingScrollToLoad="true"
+                class="sapUiMediumMarginTop"
+            >
+                <headerToolbar>
+                    <Toolbar>
+                        <Title text="Product Table" />
+                        <ToolbarSpacer />
+                        <Button
+                            text="Export Selected"
+                            icon="sap-icon://download"
+                            press="onExportSelected"
+                            type="Emphasized"
+                        />
+                    </Toolbar>
+                </headerToolbar>
+
+                <columns>
+                    <Column>
+                        <Text text="Product ID" />
+                    </Column>
+                    <Column>
+                        <Text text="Product Name" />
+                    </Column>
+                    <Column>
+                        <Text text="Unit Price" />
+                    </Column>
+                    <Column>
+                        <Text text="Units In Stock" />
+                    </Column>
+                    <Column>
+                        <Text text="Discontinued" />
+                    </Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem
+                        type="Navigation"
+                        press=".onEmployeePress"
+                    >
+                        <cells>
+                            <Text text="{local>ProductID}" />
+                            <Text text="{local>ProductName}" />
+                            <Text text="{local>UnitPrice}" />
+                            <Text text="{local>UnitsInStock}" />
+                            <Text text="{local>Discontinued}" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+    </Page>
+</mvc:View>
