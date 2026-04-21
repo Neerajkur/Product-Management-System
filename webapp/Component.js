@@ -1,7 +1,7 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "empms/model/models",
-     "sap/ui/model/json/JSONModel",
+    "sap/ui/model/json/JSONModel",
 ], (UIComponent, models, JSONModel) => {
     "use strict";
 
@@ -17,8 +17,14 @@ sap.ui.define([
             // call the base component's init function
             UIComponent.prototype.init.apply(this, arguments);
 
-             var oLocalModel = new JSONModel({
-                Products: []
+            var oLocalModel = new JSONModel({
+                Products: [],
+                kpi: {
+                    totalProducts: 0,
+                    totalValue: 0,
+                    lowStock: 0,
+                    discontinued: 0
+                }
             });
             oLocalModel.setDefaultBindingMode("TwoWay");
             this.setModel(oLocalModel, "local");

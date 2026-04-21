@@ -7,29 +7,59 @@ sap.ui.define([
     "sap/ui/model/Sorter",
     "sap/ui/export/Spreadsheet",
     "sap/ui/export/library"
-], function (Controller, JSONModel, MessageToast, Filter, FilterOperator, Sorter ,Spreadsheet, exportLibrary,) {
+], function (Controller, JSONModel, MessageToast, Filter, FilterOperator, Sorter, Spreadsheet, exportLibrary,) {
     "use strict";
-     const EdmType = exportLibrary.EdmType;
+    const EdmType = exportLibrary.EdmType;
     return Controller.extend("empms.controller.mainView", {
 
         onInit: function () {
-          
-           var oLocalModel = this.getOwnerComponent().getModel("local");
 
+            var oLocalModel = this.getOwnerComponent().getModel("local");
             var oDataModel = this.getOwnerComponent().getModel();
 
-                oDataModel.read("/Products", {
-                    success: function (oData) {
-                        oLocalModel.setProperty("/Products", oData.results);
-                        console.log("Products loaded:", oData.results);
-                    },
-                    error: function (oError) {
-                        console.log("Error:", oError.message);
-                    }
-                });
+            oDataModel.read("/Products", {
+                success: function (oData) {
+                    oLocalModel.setProperty("/Products", oData.results);
+                    console.log("Products loaded:", oData.results);
+                    this._calculateKPI();
+                }.bind(this),
+                error: function (oError) {
+                    console.log("Error:", oError.message);
+                }
+            });
 
         },
 
+        _calculateKPI: function () {
+            var oLocalModel = this.getOwnerComponent().getModel("local");
+            var aProducts = oLocalModel.getProperty("/Products");
+
+            var iTotal = aProducts.length;
+
+            var totalValue = 0;
+            var lowStock = 0;
+            var discontinued = 0;
+
+            aProducts.forEach(function (item) {
+                totalValue += item.UnitPrice * item.UnitsInStock;
+
+                if (item.UnitsInStock < 10) {
+                    lowStock++;
+                }
+
+                if (item.Discontinued) {
+                    discontinued++;
+                }
+            });
+
+            oLocalModel.setProperty("/kpi", {
+                totalProducts: iTotal,
+                totalValue: totalValue,
+                lowStock: lowStock,
+                discontinued: discontinued
+            });
+
+        },
         // Navigate to Detail page
         onEmployeePress: function (oEvent) {
             var oItem = oEvent.getSource();
@@ -42,8 +72,8 @@ sap.ui.define([
             });
         },
 
-        // Open Add Employee Dialog
-        onAddEmployee: function () {
+
+        onAddProduct: function () {
             if (!this._oDialog) {
                 this._oDialog = sap.ui.xmlfragment(
                     "empms.fragment.AddEmployee",
@@ -57,44 +87,54 @@ sap.ui.define([
         // Save new employee
         onSaveProduct: function () {
             var sID = sap.ui.getCore().byId("idNewID").getValue();
+            var oInput = sap.ui.getCore().byId("idNewName");
             var sName = sap.ui.getCore().byId("idNewName").getValue();
             var sPrice = sap.ui.getCore().byId("idNewUnitPrice").getValue();
             var sStock = sap.ui.getCore().byId("idNewUnitStock").getValue();
-            var sStatus = sap.ui.getCore().byId("idNewStatus").getValue();
+            // var sStatus = sap.ui.getCore().byId("idNewStatus").getSelectedKey();\
+            var sStatus = this._oDialog.getContent()[0]._aElements.find((element) => { return element.sId === 'idNewStatus' }).getSelectedKey();
 
-            var oModel = this.getOwnerComponent().getModel();
+            if (!sName || sName.trim() === "") {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Product Name is required");
+                return;
+            }
+
+            oInput.setValueState("None");
+
+            var oModel = this.getOwnerComponent().getModel("local");
             var aProducts = oModel.getProperty("/Products");
 
-            // Generate new id
-            // var iMaxId = 0;
-            // for (var i = 0; i < aEmployees.length; i++) {
-            //     var iCurrentId = parseInt(aEmployees[i].id.substring(1));
-            //     if (iCurrentId > iMaxId) {
-            //         iMaxId = iCurrentId;
-            //     }
-            // }
-            // var sNewId = "E0" + (iMaxId + 1 < 10 ? "0" : "") + (iMaxId + 1);
+            //Generate new id
+            var iMaxId = 0;
+            for (var i = 0; i < aProducts.length; i++) {
+                var iCurrentId = parseInt(aProducts[i].ProductID);
+                if (iCurrentId > iMaxId) {
+                    iMaxId = iCurrentId;
+                }
+            }
+            var sNewId = (iMaxId + 1);
 
             var oNewProduct = {
-                ProductID: sID,
+                ProductID: sNewId,
                 ProductName: sName,
                 UnitPrice: sPrice,
                 UnitsInStock: sStock,
-                Discontinued: sStatus
+                Discontinued: (sStatus === "true")
 
             }
-            // aProducts.push(oNewProduct);
-            // oModel.setProperty("/Products", aProducts);
+            aProducts.push(oNewProduct);
+            oModel.setProperty("/Products", aProducts);
 
-            oModel.create("/Products", oNewProduct, {
-                success: function () {
-                    sap.m.MessageToast.show("Product " + sID + " added successfully!");
-                },
-                error: function (oError) {
-                    sap.m.MessageToast.show("Error adding product");
-                    console.log(oError);
-                }
-            });
+            // oModel.create("/Products", oNewProduct, {
+            //     success: function () {
+            //         sap.m.MessageToast.show("Product " + sID + " added successfully!");
+            //     },
+            //     error: function (oError) {
+            //         sap.m.MessageToast.show("Error adding product");
+            //         console.log(oError);
+            //     }
+            // });
 
 
             sap.ui.getCore().byId("idNewID").setValue("");
@@ -104,6 +144,7 @@ sap.ui.define([
             sap.ui.getCore().byId("idNewStatus").setValue("");
 
             this._oDialog.close();
+            this._calculateKPI();
         },
 
         // Cancel dialog
@@ -125,16 +166,17 @@ sap.ui.define([
             }
         },
 
-        // Filter by department
+
         onFilter: function (oEvent) {
             var sKey = oEvent.getSource().getSelectedKey();
-            var oTable = this.byId("employeeTable");
+            var oTable = this.byId("ProductTable");
             var oBinding = oTable.getBinding("items");
 
             if (sKey === "ALL") {
                 oBinding.filter([]);
             } else {
-                var oFilter = new Filter("department", FilterOperator.EQ, sKey);
+                var bValue = (sKey === "true");
+                var oFilter = new Filter("Discontinued", FilterOperator.EQ, bValue);
                 oBinding.filter([oFilter]);
             }
         },
@@ -142,29 +184,29 @@ sap.ui.define([
         // Sort table
         onSort: function (oEvent) {
             var sKey = oEvent.getSource().getSelectedKey();
-            var oTable = this.byId("employeeTable");
+            var oTable = this.byId("ProductTable");
             var oBinding = oTable.getBinding("items");
 
             switch (sKey) {
                 case "nameAsc":
-                    oBinding.sort(new Sorter("name", false));
+                    oBinding.sort(new Sorter("ProductName", false));
                     break;
                 case "nameDesc":
-                    oBinding.sort(new Sorter("name", true));
+                    oBinding.sort(new Sorter("ProductName", true));
                     break;
-                case "salaryAsc":
-                    oBinding.sort(new Sorter("salary", false));
+                case "PriceAsc":
+                    oBinding.sort(new Sorter("UnitPrice", false));
                     break;
-                case "salaryDesc":
-                    oBinding.sort(new Sorter("salary", true));
+                case "PriceDesc":
+                    oBinding.sort(new Sorter("UnitPrice", true));
                     break;
                 default:
-                    oBinding.sort([]);
+                    oBinding.sort(null);
                     break;
             }
         },
 
-        onExportSelected: function(){
+        onExportSelected: function () {
             const oTable = this.byId("ProductTable");
             const aSelectedItems = oTable.getSelectedItems();
 
@@ -181,12 +223,12 @@ sap.ui.define([
 
             // Define columns matching your JSON structure
             const aCols = [
-                { label: "Product ID",      property: "ProductID",     type: EdmType.String },
-                { label: "Product Name",    property: "ProductName",   type: EdmType.String },
-                { label: "Unit Price",      property: "UnitPrice",    type: EdmType.String },
-                { label: "Units In Stock",  property: "UnitsInStock", type: EdmType.String },
-                { label: "Unit On Order",    property: "UnitsOnOrder", type: EdmType.String },
-                { label: "Discontinued",     property: "Discontinued", type: EdmType.String }
+                { label: "Product ID", property: "ProductID", type: EdmType.String },
+                { label: "Product Name", property: "ProductName", type: EdmType.String },
+                { label: "Unit Price", property: "UnitPrice", type: EdmType.String },
+                { label: "Units In Stock", property: "UnitsInStock", type: EdmType.String },
+                { label: "Unit On Order", property: "UnitsOnOrder", type: EdmType.String },
+                { label: "Discontinued", property: "Discontinued", type: EdmType.String }
             ];
 
             const oSettings = {
@@ -194,9 +236,9 @@ sap.ui.define([
                     columns: aCols,
                     hierarchyLevel: "Level"
                 },
-                dataSource: aSelectedData,   
+                dataSource: aSelectedData,
                 fileName: "SelectedExport.xlsx",
-                worker: false                
+                worker: false
             };
 
             const oSheet = new Spreadsheet(oSettings);
@@ -208,6 +250,83 @@ sap.ui.define([
                     oSheet.destroy();
                 });
 
+        },
+        onOpenSortDialog: function () {
+            if (!this._oSortDialog) {
+                this._oSortDialog = new sap.m.ViewSettingsDialog({
+                    confirm: this.onSortConfirm.bind(this),
+                    reset: this.onSortReset.bind(this),
+                    sortItems: [
+                        new sap.m.ViewSettingsItem({
+                            text: "Product Name",
+                            key: "ProductName"
+                        }),
+                        new sap.m.ViewSettingsItem({
+                            text: "Unit Price",
+                            key: "UnitPrice"
+                        }),
+                        new sap.m.ViewSettingsItem({
+                            text: "Units In Stock",
+                            key: "UnitsInStock"
+                        })
+                    ]
+                });
+            }
+
+            this._oSortDialog.open();
+        },
+        onSortConfirm: function (oEvent) {
+            var mParams = oEvent.getParameters();
+            var sPath = mParams.sortItem.getKey();
+            var bDescending = mParams.sortDescending;
+
+            var oTable = this.byId("ProductTable");
+            var oBinding = oTable.getBinding("items");
+
+            if (!mParams.sortItem) {
+                oBinding.sort(null);
+                return;
+            }
+            let oSorter;
+            if (sPath === "UnitPrice") {
+
+                oSorter = new sap.ui.model.Sorter(sPath, bDescending, false, function (a, b) {
+                    return parseFloat(a) - parseFloat(b);
+                });
+
+            } else {
+                oSorter = new sap.ui.model.Sorter(sPath, bDescending);
+            }
+
+            oBinding.sort(oSorter);
+        },
+        onSortReset: function () {
+            var oTable = this.byId("ProductTable");
+            var oBinding = oTable.getBinding("items");
+
+            oBinding.sort(null);
+        },
+
+        onNumberLiveChange: function (oEvent) {
+            var oInput = oEvent.getSource();
+            var sValue = oInput.getValue();
+
+            // Allow empty (user still typing)
+            if (!sValue) {
+                oInput.setValueState("None");
+                return;
+            }
+
+            // Check if valid number
+            if (isNaN(sValue)) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Only numeric values allowed");
+                return;
+            }
+        },
+        onChartTypeChange: function (oEvent) {
+            var sType = oEvent.getSource().getSelectedKey();
+            this.byId("idVizFrame").setVizType(sType);
         }
 
     });

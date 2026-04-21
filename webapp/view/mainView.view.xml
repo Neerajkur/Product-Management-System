@@ -3,6 +3,9 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:viz.data="sap.viz.ui5.data"
+    xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
 >
     <Page
         id="page"
@@ -10,19 +13,19 @@
     >
         <headerContent>
             <Button
-                text="Add Employee"
+                text="Add Product"
                 type="Emphasized"
-                press=".onAddEmployee"
+                press=".onAddProduct"
             />
         </headerContent>
 
         <content>
-            <!-- Welcome Text -->
             <VBox class="sapUiSmallMarginBegin sapUiSmallMarginTop">
                 <Text text="Welcome to Product Management System" />
             </VBox>
 
             <!-- KPI Tiles -->
+
             <HBox
                 justifyContent="Start"
                 class="sapUiMediumMarginTop sapUiMediumMarginBegin sapUiMediumMarginEnd"
@@ -31,13 +34,12 @@
             >
                 <GenericTile
                     class="sapUiSmallMarginEnd"
-                    header="Total Employees"
-                    subheader="All registered employees"
+                    header="Total Products"
                     frameType="OneByOne"
                 >
-                    <TileContent footer="Organization wide">
+                    <TileContent footer="Across Warehouse">
                         <NumericContent
-                            value="{/kpi/totalEmployees}"
+                            value="{local>/kpi/totalProducts}"
                             scale=""
                         />
                     </TileContent>
@@ -45,13 +47,12 @@
 
                 <GenericTile
                     class="sapUiSmallMarginEnd"
-                    header="Active Employees"
-                    subheader="Currently working"
+                    header="Inventory Value"
                     frameType="OneByOne"
                 >
-                    <TileContent footer="As of today">
+                    <TileContent footer="Across Warehouse">
                         <NumericContent
-                            value="{/kpi/activeEmployees}"
+                            value="{local>/kpi/totalValue}"
                             scale=""
                         />
                     </TileContent>
@@ -59,13 +60,12 @@
 
                 <GenericTile
                     class="sapUiSmallMarginEnd"
-                    header="New Joiners"
-                    subheader="Joined this month"
+                    header="Low Stocks"
                     frameType="OneByOne"
                 >
-                    <TileContent footer="Current month">
+                    <TileContent footer="Stocks Less than 10">
                         <NumericContent
-                            value="{/kpi/newJoiners}"
+                            value="{local>/kpi/lowStock}"
                             scale=""
                         />
                     </TileContent>
@@ -73,17 +73,82 @@
 
                 <GenericTile
                     class="sapUiSmallMarginEnd"
-                    header="Departments"
-                    subheader="Active departments"
+                    header="Discontinued"
                     frameType="OneByOne"
                 >
-                    <TileContent footer="Across organization">
+                    <TileContent footer="Across Warehouse">
                         <NumericContent
-                            value="{/kpi/departments}"
+                            value="{local>/kpi/discontinued}"
                             scale=""
                         />
                     </TileContent>
                 </GenericTile>
+
+                <!-- chart -->
+                <VBox alignItems="Center">
+                    <Select
+                        change="onChartTypeChange"
+                        class="sapUiSmallMarginBottom"
+                        width="100px"
+                    >
+                        <items>
+                            <core:Item
+                                key="column"
+                                text="Column"
+                            />
+                            <core:Item
+                                key="bar"
+                                text="Bar"
+                            />
+                            <core:Item
+                                key="line"
+                                text="Line"
+                            />
+                            <core:Item
+                                key="pie"
+                                text="Pie"
+                            />
+                        </items>
+                    </Select>
+
+                    <viz:VizFrame
+                        id="idVizFrame"
+                        vizType="line"
+                        width="700px"
+                        height="200px"
+                    >
+                        <viz:dataset>
+                            <viz.data:FlattenedDataset data="{local>/Products}">
+                                <viz.data:dimensions>
+                                    <viz.data:DimensionDefinition
+                                        name="Product"
+                                        value="{local>ProductName}"
+                                    />
+                                </viz.data:dimensions>
+
+                                <viz.data:measures>
+                                    <viz.data:MeasureDefinition
+                                        name="Price"
+                                        value="{local>UnitPrice}"
+                                    />
+                                </viz.data:measures>
+                            </viz.data:FlattenedDataset>
+                        </viz:dataset>
+
+                        <viz:feeds>
+                            <viz.feeds:FeedItem
+                                uid="valueAxis"
+                                type="Measure"
+                                values="Price"
+                            />
+                            <viz.feeds:FeedItem
+                                uid="categoryAxis"
+                                type="Dimension"
+                                values="Product"
+                            />
+                        </viz:feeds>
+                    </viz:VizFrame>
+                </VBox>
             </HBox>
 
             <!-- Search + Filter + Sort Toolbar -->
@@ -98,23 +163,23 @@
                 <ToolbarSpacer />
 
                 <Select
-                    id="idDepartmentFilter"
+                    id="idDiscontinuedFilter"
                     change=".onFilter"
                 >
                     <items>
                         <core:Item
                             key="ALL"
-                            text="All Departments"
+                            text="All Status"
                         />
                         <core:Item
-                            key="Engineering"
-                            text="Engineering"
+                            key="true"
+                            text="Discontinued"
                         />
                         <core:Item
-                            key="HR"
-                            text="HR"
+                            key="false"
+                            text="Active"
                         />
-                        <core:Item
+                        <!-- <core:Item
                             key="Finance"
                             text="Finance"
                         />
@@ -129,7 +194,7 @@
                         <core:Item
                             key="Marketing"
                             text="Marketing"
-                        />
+                        /> -->
                     </items>
                 </Select>
 
@@ -151,12 +216,12 @@
                             text="Name Z→A"
                         />
                         <core:Item
-                            key="salaryAsc"
-                            text="Salary Low→High"
+                            key="PriceAsc"
+                            text="Unit Price Low→High"
                         />
                         <core:Item
-                            key="salaryDesc"
-                            text="Salary High→Low"
+                            key="PriceDesc"
+                            text="Unit Price High→Low"
                         />
                     </items>
                 </Select>
@@ -172,12 +237,17 @@
                 growing="true"
                 growingThreshold="10"
                 growingScrollToLoad="true"
-                class="sapUiMediumMarginTop"
             >
                 <headerToolbar>
                     <Toolbar>
                         <Title text="Product Table" />
                         <ToolbarSpacer />
+                        <Button
+                            icon="sap-icon://sort"
+                            text="Sort"
+                            press="onOpenSortDialog"
+                        />
+
                         <Button
                             text="Export Selected"
                             icon="sap-icon://download"
@@ -215,7 +285,12 @@
                             <Text text="{local>ProductName}" />
                             <Text text="{local>UnitPrice}" />
                             <Text text="{local>UnitsInStock}" />
-                            <Text text="{local>Discontinued}" />
+                            <!-- <Text text="{local>Discontinued}" /> -->
+                            <!-- <Text text="{= ${local>Discontinued} ? 'Discontinued' : 'Active' }" /> -->
+                            <ObjectStatus
+                                text="{= ${local>Discontinued} ? 'Discontinued' : 'Active' }"
+                                state="{= ${local>Discontinued} ? 'Error' : 'Success' }"
+                            />
                         </cells>
                     </ColumnListItem>
                 </items>
