@@ -6,8 +6,10 @@ sap.ui.define([
     "sap/ui/model/FilterOperator",
     "sap/ui/model/Sorter",
     "sap/ui/export/Spreadsheet",
-    "sap/ui/export/library"
-], function (Controller, JSONModel, MessageToast, Filter, FilterOperator, Sorter, Spreadsheet, exportLibrary,) {
+    "sap/ui/export/library",
+    "sap/m/MessageBox",
+    "sap/ui/unified/FileUploader"
+], function (Controller, JSONModel, MessageToast, Filter, FilterOperator, Sorter, Spreadsheet, exportLibrary, MessageBox, FileUploader) {
     "use strict";
     const EdmType = exportLibrary.EdmType;
     return Controller.extend("empms.controller.mainView", {
@@ -249,6 +251,122 @@ sap.ui.define([
                 .finally(function () {
                     oSheet.destroy();
                 });
+
+        },
+        onDownloadTemplate: function () {
+            let aTemplateData = [{
+                ProductID: "1",
+                ProductName: "Sample Product",
+                UnitPrice: "10.99",
+                UnitsInStock: "50",
+                UnitsOnOrder: "10",
+                Discontinued: "false"
+            }];
+
+            let oSheet = XLSX.utils.json_to_sheet(aTemplateData);
+            let oWorkbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(oWorkbook, oSheet, "Products");
+            XLSX.writeFile(oWorkbook, "ProductTemplate.xlsx");
+
+            MessageToast.show("Template downloaded.");
+        },
+
+        onFileUpload: function (oEvent) {
+            const oFileUploader = this.byId("idfileUploader");
+            const oDomRef = oFileUploader.getDomRef();
+            const oFileInput = oDomRef.querySelector('input[type="file"]');
+
+            if (!oFileInput || oFileInput.files.length === 0) {
+                MessageBox.error("Please select a file.");
+                return;
+            }
+
+            const oFile = oFileInput.files[0];
+
+            // Guard: must be .xlsx
+            if (!oFile.name.endsWith(".xlsx")) {
+                MessageBox.error("Please upload a valid .xlsx file.");
+                return;
+            }
+            MessageToast.show("Button Clicked ");
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+
+                var aBinaryData = e.target.result;
+                var oWorkbook = XLSX.read(aBinaryData, { type: "binary" });
+
+                var sFirstSheet = oWorkbook.SheetNames[0];
+                var oSheet = oWorkbook.Sheets[sFirstSheet];
+
+                var aUploadedData = XLSX.utils.sheet_to_json(oSheet);
+
+                if (!aUploadedData.length) {
+                    MessageBox.error("The uploaded file is empty.");
+                    return;
+                }
+
+                var aRequiredFields = ["ProductID", "ProductName", "UnitPrice", "UnitsInStock", "UnitsOnOrder", "Discontinued"];
+                var aFileCols = Object.keys(aUploadedData[0]);
+
+                var aMissing = aRequiredFields.filter(function (col) {
+                    return !aFileCols.includes(col);
+                });
+
+                if (aMissing.length) {
+                    MessageBox.error("Missing required columns: " + aMissing.join(", "));
+                    return;
+                }
+
+                var aCleanData = aUploadedData.map(function (row) {
+                    return {
+                        ProductID: String(row.ProductID),
+                        ProductName: String(row.ProductName),
+                        UnitPrice: parseFloat(row.UnitPrice) || 0,
+                        UnitsInStock: parseInt(row.UnitsInStock) || 0,
+                        UnitsOnOrder: parseInt(row.UnitsOnOrder) || 0,
+                        Discontinued: String(row.Discontinued).toLowerCase() === "true"
+                    };
+                });
+
+                MessageBox.confirm(
+                    " This will append " + aCleanData.length + " new products to the existing list. Do you want to proceed?",
+                    {
+                        onClose: function (sAction) {
+                            if (sAction === MessageBox.Action.OK) {
+                                console.log("message box ok clicked");
+                                this._applyUploadedData(aCleanData);
+                            }
+                        }.bind(this)
+
+                    }
+                );
+
+            };
+        reader.readAsArrayBuffer(oFile);
+    },
+
+        _applyUploadedData: function (aData) {
+            console.log("method called ");
+            var oModel = this.getView().getModel("local");
+            var aExisting = oModel.getProperty("/Products") || [];
+            var aMerged = aExisting.concat(aData);
+            oModel.setProperty("/Products", aMerged);
+            this._calculateKPI();
+
+            var oTable = this.byId("ProductTable");
+            var oBinding = oTable.getBinding("items");
+            oBinding.filter([]);
+            oTable.removeSelections(true);
+
+            //Show success Trip
+            // var oStrip = this.byId("idUploadStrip");
+            // oStrip.setType("Success");
+            // oStrip.setVisible(true);
+            // oStrip.setText(aData.length + " products appended successfully from Excel.");
+
+            this.byId("idfileUploader").clear();
 
         },
         onOpenSortDialog: function () {

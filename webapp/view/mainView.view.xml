@@ -6,6 +6,7 @@
     xmlns:viz="sap.viz.ui5.controls"
     xmlns:viz.data="sap.viz.ui5.data"
     xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
+    xmlns:unified="sap.ui.unified"
 >
     <Page
         id="page"
@@ -248,6 +249,24 @@
                             press="onOpenSortDialog"
                         />
 
+                        <!-- <Label text="Import from Excel:" /> -->
+                        <unified:FileUploader
+                            id="idfileUploader"
+                            fileType="xlsx,xls"
+                            change="onFileUpload"
+                            buttonText="Upload Excel"
+                            buttonOnly="true"
+                            iconOnly="false"
+                            style="Default"
+                        />
+
+                        <Button
+                            text="Download Template"
+                            icon="sap-icon://download"
+                            type="Transparent"
+                            press="onDownloadTemplate"
+                        />
+
                         <Button
                             text="Export Selected"
                             icon="sap-icon://download"
@@ -256,6 +275,15 @@
                         />
                     </Toolbar>
                 </headerToolbar>
+                <MessageStrip
+                    id="uploadResultStrip"
+                    text=""
+                    type="Success"
+                    showCloseButton="true"
+                    visible="false"
+                    class="sapUiSmallMarginBegin sapUiSmallMarginEnd sapUiSmallMarginTop"
+                    close="onCloseUploadStrip"
+                />
 
                 <columns>
                     <Column>
