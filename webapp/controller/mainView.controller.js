@@ -208,6 +208,40 @@ sap.ui.define([
             }
         },
 
+        onLowStockPress: function (oEvent) {
+            let oTile = oEvent.getSource();
+            let otable = this.byId("ProductTable");
+            let oBinding = otable.getBinding("items");
+
+            if (this._lowstockFilterActive === true) {
+                oBinding.filter([]);
+                 oTile.removeStyleClass("selectedTile");
+                this._lowstockFilterActive = false;
+            } else {
+                let oFilter = new Filter("UnitsInStock", FilterOperator.LT, 10);
+                oBinding.filter([oFilter]);
+                  oTile.addStyleClass("selectedTile");
+                this._lowstockFilterActive = true;
+            }
+
+        },
+         onDiscontinuedPress: function (oEvent) {
+            let oTile = oEvent.getSource();
+            let otable = this.byId("ProductTable");
+            let oBinding = otable.getBinding("items");
+
+            if (this._discontinuedFilterActive === true) {
+                oBinding.filter([]);
+                 oTile.removeStyleClass("selectedTile");
+                this._discontinuedFilterActive = false;
+            } else {
+                let oFilter = new Filter("Discontinued", FilterOperator.EQ, true);
+                oBinding.filter([oFilter]);
+                 oTile.addStyleClass("selectedTile");
+                this._discontinuedFilterActive = true;
+            }
+
+        },
         onExportSelected: function () {
             const oTable = this.byId("ProductTable");
             const aSelectedItems = oTable.getSelectedItems();
@@ -253,6 +287,21 @@ sap.ui.define([
                 });
 
         },
+        onImportPress: function () {
+            if (!this._oImportDialog) {
+                this._oImportDialog = sap.ui.xmlfragment(
+                    "empms.fragment.ImportDialog",
+                    this
+                );
+                this.getView().addDependent(this._oImportDialog);
+            }
+            this._oImportDialog.open();
+        },
+
+        onCancelImport: function () {
+            this._oImportDialog.close();
+        },
+
         onDownloadTemplate: function () {
             let aTemplateData = [{
                 ProductID: "1",
@@ -269,10 +318,13 @@ sap.ui.define([
             XLSX.writeFile(oWorkbook, "ProductTemplate.xlsx");
 
             MessageToast.show("Template downloaded.");
+            this._oImportDialog.close();
         },
 
         onFileUpload: function (oEvent) {
-            const oFileUploader = this.byId("idfileUploader");
+            // const oFileUploader = this.byId("idfileUploader");
+            this._oFileUploader = oEvent.getSource();
+            const oFileUploader = oEvent.getSource();
             const oDomRef = oFileUploader.getDomRef();
             const oFileInput = oDomRef.querySelector('input[type="file"]');
 
@@ -344,8 +396,9 @@ sap.ui.define([
                 );
 
             };
-        reader.readAsArrayBuffer(oFile);
-    },
+            reader.readAsArrayBuffer(oFile);
+            this._oFileUploader = oEvent.getSource();
+        },
 
         _applyUploadedData: function (aData) {
             console.log("method called ");
@@ -366,7 +419,8 @@ sap.ui.define([
             // oStrip.setVisible(true);
             // oStrip.setText(aData.length + " products appended successfully from Excel.");
 
-            this.byId("idfileUploader").clear();
+
+            this._oImportDialog.close();
 
         },
         onOpenSortDialog: function () {
@@ -445,7 +499,55 @@ sap.ui.define([
         onChartTypeChange: function (oEvent) {
             var sType = oEvent.getSource().getSelectedKey();
             this.byId("idVizFrame").setVizType(sType);
-        }
+        },
+        onMassEditPress: function () {
+            let oTable = this.byId("ProductTable");
+            let aSelectedItems = oTable.getSelectedItems();
 
+            if (aSelectedItems.length === 0) {
+                MessageToast.show("Please select at least one product to edit.");
+                return;
+            }
+
+            let aSelectedData = aSelectedItems.map(oItem => {
+                return Object.assign({}, oItem.getBindingContext("local").getObject())
+            });
+
+            let oMassEditModel = new JSONModel({ selectedItems: aSelectedData });
+            this.getView().setModel(oMassEditModel, "massEdit");
+
+
+            if (!this._oMassEditDialog) {
+                this._oMassEditDialog = sap.ui.xmlfragment(
+                    "empms.fragment.MassEdit",
+                    this
+                );
+                this.getView().addDependent(this._oMassEditDialog);
+            }
+            this._oMassEditDialog.open();
+        },
+        onMassEditCancel: function () {
+            this._oMassEditDialog.close();
+        },
+        onMassEditSave: function () {
+            let aEditedItems = this.getView().getModel("massEdit").getProperty("/selectedItems");
+            debugger;
+            let oAllProducts = this.getView().getModel("local").getProperty("/Products");
+
+            aEditedItems.forEach(editedItem => {
+                let index = oAllProducts.findIndex(product => product.ProductID === editedItem.ProductID);
+                if (index !== -1) {
+                    oAllProducts[index] = Object.assign({}, editedItem);
+                }
+            });
+            let oMainModel = this.getView().getModel("local");
+            oMainModel.setProperty("/Products", oAllProducts);
+            oMainModel.refresh(true);
+            this._oMassEditDialog.close();
+
+            this.byId("ProductTable").removeSelections(true);
+            this._calculateKPI();
+
+        }
     });
 });

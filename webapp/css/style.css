@@ -1,1 +1,4 @@
-/* Enter your custom styles here */
+.selectedTile {
+    background-color: #bff3f9 !important;
+    color: white !important;
+}
